@@ -15,16 +15,17 @@ import android.widget.LinearLayout;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import br.com.hbird.whatstatus.R;
 
 public class ItemPagerAdapter extends PagerAdapter {
 
     private Context context;
-    private File[] itens;
+    private ArrayList<File> itens;
     private LayoutInflater inflater;
 
-    public ItemPagerAdapter(Context context, File[] itens) {
+    public ItemPagerAdapter(Context context, ArrayList<File> itens) {
         this.context = context;
         this.itens = itens;
         inflater = LayoutInflater.from(context);
@@ -32,7 +33,7 @@ public class ItemPagerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return itens.length;
+        return itens.size();
     }
 
     @Override
@@ -47,21 +48,21 @@ public class ItemPagerAdapter extends PagerAdapter {
         ImageView imgItem = layout.findViewById(R.id.img_item);
         ImageView imgPlay = layout.findViewById(R.id.img_play);
 
-        if (itens[position].getName().contains(".mp4")) {
+        if (itens.get(position).getName().contains(".mp4")) {
             imgPlay.setVisibility(View.VISIBLE);
 
             imgPlay.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(itens[position].getAbsolutePath()));
-                    intent.setDataAndType(Uri.parse(itens[position].getAbsolutePath()), "video/mp4");
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(itens.get(position).getAbsolutePath()));
+                    intent.setDataAndType(Uri.parse(itens.get(position).getAbsolutePath()), "video/mp4");
                     context.startActivity(intent);
                 }
             });
         }
 
         Glide.with(imgItem.getContext())
-                .load(itens[position])
+                .load(itens.get(position))
                 .into(imgItem);
 
         container.addView(layout);
@@ -70,7 +71,21 @@ public class ItemPagerAdapter extends PagerAdapter {
     }
 
     @Override
+    public int getItemPosition(Object object) {
+        if (itens.contains(object)) {
+            return itens.indexOf(object);
+        } else {
+            return POSITION_NONE;
+        }
+    }
+
+    @Override
     public void destroyItem(ViewGroup container, int position, Object view) {
         container.removeView((View) view);
+    }
+
+    public void removeItem(int position) {
+        itens.remove(position);
+        notifyDataSetChanged();
     }
 }

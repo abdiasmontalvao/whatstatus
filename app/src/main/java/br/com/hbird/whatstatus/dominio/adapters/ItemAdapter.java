@@ -13,17 +13,18 @@ import com.bumptech.glide.Glide;
 import br.com.hbird.whatstatus.R;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
-    private File[] itens;
+    private ArrayList<File> itens;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     private int itemDPParam;
     private float scale;
 
     // data is passed into the constructor
-    public ItemAdapter(Context context, File[] itens, int itemDPParam) {
+    public ItemAdapter(Context context, ArrayList<File> itens, int itemDPParam) {
         this.scale = context.getResources().getDisplayMetrics().density;
 
         this.mInflater = LayoutInflater.from(context);
@@ -42,20 +43,20 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     // binds the data to the TextView in each cell
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        if (itens[position].getName().contains(".mp4")) {
+        if (itens.get(position).getName().contains(".mp4")) {
             holder.imgPlay.setVisibility(View.VISIBLE);
         } else {
             holder.imgPlay.setVisibility(View.GONE);
         }
         Glide.with(holder.imgThumb.getContext())
-             .load(itens[position])
+             .load(itens.get(position))
              .into(holder.imgThumb);
     }
 
     // total number of cells
     @Override
     public int getItemCount() {
-        return itens.length;
+        return itens.size();
     }
 
     // stores and recycles views as they are scrolled off screen
@@ -83,7 +84,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
     // convenience method for getting data at click position
     File getItem(int position) {
-        return itens[position];
+        return itens.get(position);
     }
 
     // allows clicks events to be caught

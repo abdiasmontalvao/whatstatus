@@ -11,14 +11,16 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
+import java.util.ArrayList;
 
 import br.com.hbird.whatstatus.dominio.adapters.ItemPagerAdapter;
+
+import static br.com.hbird.whatstatus.MainActivity.ITENS_SALVOS;
 
 public class SliderActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener, View.OnClickListener {
 
@@ -26,11 +28,11 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
 
     private FloatingActionButton fabEnviar;
 
-    private File[] itens;
+    private ArrayList<File> itens;
 
     private Menu menu;
 
-    private int quantidadeItens;
+    public static final int ITEM_EXCLUIDO = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,9 +48,8 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
 
         Bundle parametros = getIntent().getExtras();
 
-        itens = (File[]) parametros.get("itens");
+        itens = (ArrayList<File>) parametros.get("itens");
         int posicaoInicial = parametros.getInt("posicao_inicial");
-        quantidadeItens = itens.length;
 
         viewPagerSlider.setAdapter(new ItemPagerAdapter(this, itens));
         viewPagerSlider.setCurrentItem(posicaoInicial);
@@ -60,11 +61,11 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
     }
 
     private void atualizarTitulo() {
-        getSupportActionBar().setTitle("Exibindo " + (viewPagerSlider.getCurrentItem() + 1) + " de " + quantidadeItens);
+        getSupportActionBar().setTitle("Exibindo " + (viewPagerSlider.getCurrentItem() + 1) + " de " + itens.size());
     }
 
     private void exibirMenu() {
-        File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens[viewPagerSlider.getCurrentItem()].getName());
+        File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens.get(viewPagerSlider.getCurrentItem()).getName());
 
         if (file.exists()) {
             menu.findItem(R.id.action_excluir).setVisible(true);
@@ -97,8 +98,8 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
             case R.id.fab_enviar:
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(itens[viewPagerSlider.getCurrentItem()].getAbsolutePath()));
-                shareIntent.setType((itens[viewPagerSlider.getCurrentItem()].getName().contains(".mp4")) ? "video/mp4" : "image/*");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(itens.get(viewPagerSlider.getCurrentItem()).getAbsolutePath()));
+                shareIntent.setType((itens.get(viewPagerSlider.getCurrentItem()).getName().contains(".mp4")) ? "video/mp4" : "image/*");
                 startActivity(Intent.createChooser(shareIntent, "Enviar status"));
                 break;
         }
@@ -124,16 +125,24 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
                 break;
             case R.id.action_salvar:
                 try {
-                    FileUtils.copyFile(itens[viewPagerSlider.getCurrentItem()], new File(Environment.getExternalStorageDirectory() + "/WhatStatus/", itens[viewPagerSlider.getCurrentItem()].getName()));
+                    FileUtils.copyFile(itens.get(viewPagerSlider.getCurrentItem()), new File(Environment.getExternalStorageDirectory() + "/WhatStatus/", itens.get(viewPagerSlider.getCurrentItem()).getName()));
                     exibirMenu();
+                    Toast.makeText(this,"Adicionado aos status salvos", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Toast.makeText(this,"Não foi possível adicionar aos status salvos", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.action_excluir:
-                File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens[viewPagerSlider.getCurrentItem()].getName());
+                File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens.get(viewPagerSlider.getCurrentItem()).getName());
                 file.delete();
+                Toast.makeText(this,"Removido dos status salvos", Toast.LENGTH_SHORT).show();
                 exibirMenu();
+                if (itens.get(viewPagerSlider.getCurrentItem()).getAbsolutePath().contains("WhatStatus")) {
+                    //((ItemPagerAdapter) viewPagerSlider.getAdapter()).removeItem(viewPagerSlider.getCurrentItem());
+                    setResult(ITEM_EXCLUIDO);
+                    finish();
+                }
                 break;
         }
 
