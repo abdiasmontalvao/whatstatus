@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_temporarios"
+        android:icon="@drawable/ic_access_time_24dp"
+        android:title="Temporários" />
+
+    <item
+        android:id="@+id/navigation_salvos"
+        android:icon="@drawable/ic_save_24dp"
+        android:title="Salvos" />
+
+</menu>
