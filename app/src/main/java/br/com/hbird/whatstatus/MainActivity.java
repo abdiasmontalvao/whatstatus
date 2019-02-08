@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
 
@@ -35,9 +37,12 @@ import java.util.List;
 
 import br.com.hbird.whatstatus.dominio.adapters.ItemAdapter;
 
+import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static br.com.hbird.whatstatus.SliderActivity.ITEM_EXCLUIDO;
 
-public class MainActivity extends AppCompatActivity implements ItemAdapter.ItemClickListener {
+public class MainActivity extends AppCompatActivity implements
+        ItemAdapter.ItemClickListener,
+        ActivityCompat.OnRequestPermissionsResultCallback {
 
     private BottomNavigationView navigation;
 
@@ -171,6 +176,34 @@ public class MainActivity extends AppCompatActivity implements ItemAdapter.ItemC
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
+        boolean permitido = true;
+
+        if (requestCode == 101) {
+            for (int checkPermission : grantResults) {
+                if (checkPermission == PERMISSION_DENIED) {
+                    permitido = false;
+                    break;
+                }
+            }
+        }
+
+        if (permitido) {
+            atualizarItens();
+        } else {
+            Snackbar
+                    .make(findViewById(R.id.root_view), "Você precisa permitir o acesso ao armazenamento do seu telefone", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Permitir", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            verificarPermissoes();
+                        }
+                    })
+                    .show();
+        }
+    }
+
     private void atualizarItens() {
         navigation.setSelectedItemId(navigation.getSelectedItemId());
     }
@@ -180,6 +213,15 @@ public class MainActivity extends AppCompatActivity implements ItemAdapter.ItemC
 
         File dir = new File(Environment.getExternalStorageDirectory() + ((tipo == ITENS_SALVOS) ? "/WhatStatus/" : "/WhatsApp/Media/.Statuses/"));
         File[] itens = dir.listFiles();
+
+        if (itens == null) {
+            imgSemResultados.setVisibility(View.VISIBLE);
+            txtSemResultados.setVisibility(View.VISIBLE);
+            return;
+        } else {
+            imgSemResultados.setVisibility(View.GONE);
+            txtSemResultados.setVisibility(View.GONE);
+        }
 
         Arrays.sort(itens, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
 
@@ -204,17 +246,14 @@ public class MainActivity extends AppCompatActivity implements ItemAdapter.ItemC
     }
 
     public void verificarPermissoes() {
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
-            }
-        }
-
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_STORAGE);
-            }
-        }
+        ActivityCompat.requestPermissions(
+            this,
+            new String[]{
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+            },
+            101
+        );
     }
 
     public void initDir() {
