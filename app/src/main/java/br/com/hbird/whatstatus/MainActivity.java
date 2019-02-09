@@ -284,9 +284,7 @@ public class MainActivity extends AppCompatActivity implements
             AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).create();
             dialog.setTitle("Novidades da última versão");
             dialog.setMessage("\n" +
-                    "* Correção de bugs\n\n" +
-                    "* Melhorias na interface\n\n" +
-                    "* Agora é possível salvar os status permanentemente\n");
+                    "* Correção de bugs\n\n");
             dialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Fechar",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
