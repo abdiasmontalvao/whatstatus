@@ -18,14 +18,15 @@ import java.io.File;
 import java.util.ArrayList;
 
 import br.com.hbird.whatstatus.R;
+import br.com.hbird.whatstatus.dominio.classes.Media;
 
 public class ItemPagerAdapter extends PagerAdapter {
 
     private Context context;
-    private ArrayList<File> itens;
+    private ArrayList<Media> itens;
     private LayoutInflater inflater;
 
-    public ItemPagerAdapter(Context context, ArrayList<File> itens) {
+    public ItemPagerAdapter(Context context, ArrayList<Media> itens) {
         this.context = context;
         this.itens = itens;
         inflater = LayoutInflater.from(context);
@@ -48,21 +49,21 @@ public class ItemPagerAdapter extends PagerAdapter {
         ImageView imgItem = layout.findViewById(R.id.img_item);
         ImageView imgPlay = layout.findViewById(R.id.img_play);
 
-        if (itens.get(position).getName().contains(".mp4")) {
+        if (itens.get(position).getArquivo().getName().contains(".mp4")) {
             imgPlay.setVisibility(View.VISIBLE);
 
             imgPlay.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(itens.get(position).getAbsolutePath()));
-                    intent.setDataAndType(Uri.parse(itens.get(position).getAbsolutePath()), "video/mp4");
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(itens.get(position).getArquivo().getAbsolutePath()));
+                    intent.setDataAndType(Uri.parse(itens.get(position).getArquivo().getAbsolutePath()), "video/mp4");
                     context.startActivity(intent);
                 }
             });
         }
 
         Glide.with(imgItem.getContext())
-                .load(itens.get(position))
+                .load(itens.get(position).getArquivo())
                 .into(imgItem);
 
         container.addView(layout);

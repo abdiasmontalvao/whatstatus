@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import br.com.hbird.whatstatus.dominio.adapters.ItemPagerAdapter;
+import br.com.hbird.whatstatus.dominio.classes.Media;
 
 import static br.com.hbird.whatstatus.MainActivity.ITENS_SALVOS;
 
@@ -28,7 +29,7 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
 
     private FloatingActionButton fabEnviar;
 
-    private ArrayList<File> itens;
+    private ArrayList<Media> itens;
 
     private Menu menu;
 
@@ -48,7 +49,7 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
 
         Bundle parametros = getIntent().getExtras();
 
-        itens = (ArrayList<File>) parametros.get("itens");
+        itens = (ArrayList<Media>) parametros.get("itens");
         int posicaoInicial = parametros.getInt("posicao_inicial");
 
         viewPagerSlider.setAdapter(new ItemPagerAdapter(this, itens));
@@ -65,7 +66,7 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
     }
 
     private void exibirMenu() {
-        File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens.get(viewPagerSlider.getCurrentItem()).getName());
+        File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens.get(viewPagerSlider.getCurrentItem()).getArquivo().getName());
 
         if (file.exists()) {
             menu.findItem(R.id.action_excluir).setVisible(true);
@@ -96,10 +97,11 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.fab_enviar:
+                File item = itens.get(viewPagerSlider.getCurrentItem()).getArquivo();
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(itens.get(viewPagerSlider.getCurrentItem()).getAbsolutePath()));
-                shareIntent.setType((itens.get(viewPagerSlider.getCurrentItem()).getName().contains(".mp4")) ? "video/mp4" : "image/*");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(item.getAbsolutePath()));
+                shareIntent.setType((item.getName().contains(".mp4")) ? "video/mp4" : "image/*");
                 startActivity(Intent.createChooser(shareIntent, "Enviar status"));
                 break;
         }
@@ -125,7 +127,7 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
                 break;
             case R.id.action_salvar:
                 try {
-                    FileUtils.copyFile(itens.get(viewPagerSlider.getCurrentItem()), new File(Environment.getExternalStorageDirectory() + "/WhatStatus/", itens.get(viewPagerSlider.getCurrentItem()).getName()));
+                    FileUtils.copyFile(itens.get(viewPagerSlider.getCurrentItem()).getArquivo(), new File(Environment.getExternalStorageDirectory() + "/WhatStatus/", itens.get(viewPagerSlider.getCurrentItem()).getArquivo().getName()));
                     exibirMenu();
                     Toast.makeText(this,"Adicionado aos status salvos", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
@@ -134,11 +136,11 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
                 }
                 break;
             case R.id.action_excluir:
-                File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens.get(viewPagerSlider.getCurrentItem()).getName());
+                File file = new File(Environment.getExternalStorageDirectory() + "/WhatStatus/" + itens.get(viewPagerSlider.getCurrentItem()).getArquivo().getName());
                 file.delete();
                 Toast.makeText(this,"Removido dos status salvos", Toast.LENGTH_SHORT).show();
                 exibirMenu();
-                if (itens.get(viewPagerSlider.getCurrentItem()).getAbsolutePath().contains("WhatStatus")) {
+                if (itens.get(viewPagerSlider.getCurrentItem()).getArquivo().getAbsolutePath().contains("WhatStatus")) {
                     //((ItemPagerAdapter) viewPagerSlider.getAdapter()).removeItem(viewPagerSlider.getCurrentItem());
                     setResult(ITEM_EXCLUIDO);
                     finish();

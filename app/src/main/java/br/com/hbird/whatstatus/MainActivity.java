@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -36,19 +37,24 @@ import java.util.Arrays;
 import java.util.List;
 
 import br.com.hbird.whatstatus.dominio.adapters.ItemAdapter;
+import br.com.hbird.whatstatus.dominio.classes.Media;
 
 import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static br.com.hbird.whatstatus.SliderActivity.ITEM_EXCLUIDO;
 
 public class MainActivity extends AppCompatActivity implements
         ItemAdapter.ItemClickListener,
+        ItemAdapter.ItemLongClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback {
 
     private BottomNavigationView navigation;
 
+    private Menu menu;
+
     private RecyclerView recyclerItens;
 
     private FloatingActionButton fabTopo;
+    private FloatingActionButton fabEnviarSelecionados;
 
     private ImageView imgSemResultados;
 
@@ -56,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private ItemAdapter itemAdapter;
 
-    private List<File> itens;
+    private List<Media> itens;
 
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 0;
     private static final int MY_PERMISSIONS_REQUEST_READ_STORAGE = 1;
@@ -82,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements
         recyclerItens = findViewById(R.id.recycler_itens);
 
         fabTopo = findViewById(R.id.fab_topo);
+        fabEnviarSelecionados = findViewById(R.id.fab_enviar_selecionados);
 
         imgSemResultados = findViewById(R.id.img_sem_resultados);
 
@@ -115,6 +122,13 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
+        fabEnviarSelecionados.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                enviarSelecionados();
+            }
+        });
+
         navigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -136,6 +150,11 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onItemClick(View view, int position) {
+        if (itemAdapter.getQuantSelecionados() > 0) {
+            onItemLongClick(view, position);
+            return;
+        }
+
         Intent intent = new Intent(this, SliderActivity.class);
 
         intent.putExtra("itens", new ArrayList<>(this.itens));
@@ -153,6 +172,8 @@ public class MainActivity extends AppCompatActivity implements
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
 
+        this.menu = menu;
+
         return true;
     }
 
@@ -160,6 +181,12 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_atualizar:
+                atualizarItens();
+                break;
+            case R.id.action_enviar:
+                enviarSelecionados();
+                break;
+            case R.id.action_desmarcarTodos:
                 atualizarItens();
                 break;
         }
@@ -225,7 +252,15 @@ public class MainActivity extends AppCompatActivity implements
 
         Arrays.sort(itens, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
 
-        this.itens = Arrays.asList(itens);
+        if (this.menu != null) {
+            setSelecionandoMenu(false);
+        }
+
+        this.itens = new ArrayList<Media>();
+
+        for (File item : Arrays.asList(itens)) {
+            this.itens.add(new Media(item));
+        }
 
         int numberOfColumns = 4;
 
@@ -234,6 +269,7 @@ public class MainActivity extends AppCompatActivity implements
         recyclerItens.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
         itemAdapter = new ItemAdapter(this, new ArrayList<>(this.itens), displayUtils.getItemWidthDP());
         itemAdapter.setClickListener(this);
+        itemAdapter.setLongClickListener(this);
         recyclerItens.setAdapter(itemAdapter);
 
         if (this.itens.size() == 0) {
@@ -284,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements
             AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).create();
             dialog.setTitle("Novidades da última versão");
             dialog.setMessage("\n" +
-                    "* Correção de bugs\n\n");
+                    "* Agora você pode selecionar e enviar vários status simultaneamente.\n\n");
             dialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Fechar",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -293,5 +329,50 @@ public class MainActivity extends AppCompatActivity implements
                     });
             dialog.show();
         }
+    }
+
+    @Override
+    public void onItemLongClick(View view, int position) {
+        Media item = itemAdapter.getItem(position);
+        item.setSelecionado(!item.isSelecionado());
+        itemAdapter.setItem(item, position);
+
+        if (item.isSelecionado()) {
+            view.findViewById(R.id.img_check).setVisibility(View.VISIBLE);
+            itemAdapter.setQuantSelecionados(itemAdapter.getQuantSelecionados()+1);
+        } else {
+            view.findViewById(R.id.img_check).setVisibility(View.GONE);
+            itemAdapter.setQuantSelecionados(itemAdapter.getQuantSelecionados()-1);
+        }
+
+        setSelecionandoMenu(itemAdapter.getQuantSelecionados() > 0);
+    }
+
+    private void setSelecionandoMenu(boolean selecionando) {
+        if (selecionando) {
+            menu.findItem(R.id.action_atualizar).setVisible(false);
+            menu.findItem(R.id.action_desmarcarTodos).setVisible(true);
+            menu.findItem(R.id.action_enviar).setVisible(true);
+            fabEnviarSelecionados.show();
+        } else {
+            menu.findItem(R.id.action_atualizar).setVisible(true);
+            menu.findItem(R.id.action_desmarcarTodos).setVisible(false);
+            menu.findItem(R.id.action_enviar).setVisible(false);
+            fabEnviarSelecionados.hide();
+        }
+    }
+
+    private void enviarSelecionados() {
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+        shareIntent.setType("image/*");
+        ArrayList<Uri> files = new ArrayList<>();
+        for (int i = 0; i < this.itens.size(); i++) {
+            if (this.itens.get(i).isSelecionado()) {
+                files.add(Uri.parse(this.itens.get(i).getArquivo().getAbsolutePath()));
+            }
+        }
+        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+        startActivity(Intent.createChooser(shareIntent, "Enviar status"));
     }
 }

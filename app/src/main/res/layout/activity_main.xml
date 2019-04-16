@@ -45,6 +45,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_keyboard_arrow_up_white_24dp" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_enviar_selecionados"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:clickable="true"
+        android:visibility="gone"
+        app:backgroundTint="@color/colorPrimary"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@+id/navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_send_black_24dp" />
+
     <ImageView
         android:id="@+id/img_sem_resultados"
         android:layout_width="72dp"

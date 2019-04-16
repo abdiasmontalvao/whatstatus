@@ -8,4 +8,18 @@
         android:title="Atualizar"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_desmarcarTodos"
+        android:icon="@drawable/ic_clear_white_24dp"
+        android:title="Desmarcar todos"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_enviar"
+        android:icon="@drawable/ic_send_black_24dp"
+        android:title="Enviar selecionados"
+        android:visible="false"
+        app:showAsAction="always" />
+
 </menu>

@@ -6,7 +6,7 @@
     android:layout_height="72dp"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
-    android:focusable="true" >
+    android:focusable="true">
 
     <ImageView
         android:id="@+id/img_thumb"
@@ -46,4 +46,16 @@
         app:layout_constraintTop_toBottomOf="@+id/img_thumb"
         app:layout_constraintTop_toTopOf="@+id/img_thumb"
         app:srcCompat="@drawable/ic_play_circle_outline_black_24dp" />
+
+    <ImageView
+        android:id="@+id/img_check"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/colorAccent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/img_thumb"
+        app:srcCompat="@drawable/ic_check_white_24dp" />
 </android.support.constraint.ConstraintLayout>
