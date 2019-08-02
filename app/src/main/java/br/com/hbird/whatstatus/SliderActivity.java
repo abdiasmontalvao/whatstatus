@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -100,7 +101,11 @@ public class SliderActivity extends AppCompatActivity implements ViewPager.OnPag
                 File item = itens.get(viewPagerSlider.getCurrentItem()).getArquivo();
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(item.getAbsolutePath()));
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                shareIntent.putExtra(
+                        Intent.EXTRA_STREAM,
+                        FileProvider.getUriForFile(SliderActivity.this, BuildConfig.APPLICATION_ID + ".provider", item)
+                );
                 shareIntent.setType((item.getName().contains(".mp4")) ? "video/mp4" : "image/*");
                 startActivity(Intent.createChooser(shareIntent, "Enviar status"));
                 break;

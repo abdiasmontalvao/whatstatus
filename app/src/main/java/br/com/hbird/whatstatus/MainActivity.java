@@ -17,6 +17,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -320,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements
             AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).create();
             dialog.setTitle("Novidades da última versão");
             dialog.setMessage("\n" +
-                    "* Agora você pode selecionar e enviar vários status simultaneamente.\n\n");
+                    "* Correção de bugs.\n\n");
             dialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Fechar",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -369,10 +370,11 @@ public class MainActivity extends AppCompatActivity implements
         ArrayList<Uri> files = new ArrayList<>();
         for (int i = 0; i < this.itens.size(); i++) {
             if (this.itens.get(i).isSelecionado()) {
-                files.add(Uri.parse(this.itens.get(i).getArquivo().getAbsolutePath()));
+                files.add(FileProvider.getUriForFile(MainActivity.this, BuildConfig.APPLICATION_ID + ".provider", this.itens.get(i).getArquivo()));
             }
         }
         shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivity(Intent.createChooser(shareIntent, "Enviar status"));
     }
 }
